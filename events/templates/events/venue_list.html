@@ -1,0 +1,15 @@
+{% extends "events/base.html" %}
+{% block title %}All venues{% endblock %}
+{% block content %}
+
+<ul>
+{% for venue in venue_list %}
+<li><a href={% url 'venue' venue.id %}>{{venue.name}}</a><br />
+<i>
+{{venue.this_week_events.count}} event{{venue.this_week_events.count|pluralize}} in the next 7 days
+</i>
+</li>
+{% endfor %}
+</ul>
+
+{% endblock content %}

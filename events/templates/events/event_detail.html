@@ -1,0 +1,21 @@
+{% extends "events/base.html" %}
+{% block title %}{{event.name}} @ {{event.venue.name}}{% endblock %}
+
+{% block content %}
+
+<h1>{{event.name}}</h1>
+ <div class="event_detail_wrap">
+  <div class="event_venue">at <a href="{% url 'venue' event.venue.id %}">{{ event.venue.name }}</a></div>
+  <div class="event_categories">{{ event.category.all|join:"/" }}</div>
+  <div class="event_description">{{ event.description }}</div>
+ </div>
+ <div class="event_detail_occurrences">
+  {% for o in event.occurrence_set.all %}
+   {% if o.is_past %}<div class="event_occurrence_past">
+   {% else %}{% ifchanged o.is_past %}<div class="event_occurrence_next">
+   {% else %}<div class="event_occurrence">{% endifchanged %}{% endif %}
+   {{ o.long_string }}
+  </div>
+  {% endfor %}
+ </div>
+{% endblock content %}

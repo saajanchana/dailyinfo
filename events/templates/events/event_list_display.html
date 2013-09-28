@@ -1,0 +1,15 @@
+<div class="event_list">
+{% for event in event_list %}
+<div class="event">
+ <div class="event_title"><a href="{% url 'event' event.id%}">{{ event.name }}</a></b> 
+    {% if show_venue %}
+    at <a href="{%url 'venue' event.venue.id %}">{{ event.venue.name }}</a>
+    {% endif %}</div>
+ <div class="event_categories">{{ event.category.all|join:"/" }}</div>
+ <div class="event_occurrences">{{ event.occurrences_in_range|join:"; " }}</div>
+ <div class="event_description">{{ event.description }}</div>
+</div>
+{% empty %}
+ <div class="events_empty">No events to display</div>
+{% endfor %}
+</div>

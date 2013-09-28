@@ -1,0 +1,37 @@
+{% load staticfiles %}
+
+<html>
+<head>
+<title>{% block title %}Page title{% endblock %} &mdash; Cambridge Daily Info</title>
+<link rel="stylesheet" type="text/css" href="{% static 'events/style.css' %}" />
+{% block head_extra %}{% endblock %}
+</head>
+<body>
+<div id="wrap">
+
+<div id="header">
+<div id="standfirst">Cambridge Daily Info</div>
+</div>
+
+<div id="sidebar">
+<a href="/dailyinfo/week/">This Week</a>
+<a href="/dailyinfo/day/">Today</a>
+<a href="/dailyinfo/venues/">Venues</a>
+<a href="/dailyinfo/all/">(All Events)</a>
+<a href="/admin/">(Admin)</a>
+{% block sidebar_extra %}{% endblock %}
+</div>
+
+<div id="content">
+{% block content %}{% endblock %}
+</div>
+
+<div id="footer">
+&copy; etc. Footer goes here.
+</div>
+
+</div>
+<script src="{% static 'events/jquery-1.10.2.js' %}"></script>
+{% block body_extra %}{% endblock %}
+</body>
+</html>

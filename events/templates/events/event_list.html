@@ -1,0 +1,41 @@
+{% extends "events/base.html" %}
+{% load staticfiles %}
+{% block title %}{{title}}{% endblock %}
+
+{% block sidebar_extra %}
+<form id="category_selector" method="get">
+{% for cat in categories %}
+<div>
+<input type="checkbox" 
+       value="{{cat.id}}"
+       id="check_{{cat.id}}"
+       {% if cat.active %}checked="checked"{% endif %}
+       onchange="set_categories()"/>
+<label for="check_{{cat.id}}">{{cat.name}}</label>
+</div>
+{% endfor %}
+<input type="hidden" id="categories" name="categories"/>
+</form>
+{% endblock %}
+
+{% block content %}
+<h1>{{title}}</h1>
+<a class="prev-link" href="{{prev_url}}">&laquo; {{prev_desc}}</a>
+<a class="next-link" href="{{next_url}}">{{next_desc}} &raquo;</a>
+
+{% include 'events/event_list_display.html' with event_list=event_list show_venue=True only %}
+
+<a class="prev-link" href="{{prev_url}}">&laquo; {{prev_desc}}</a>
+<a class="next-link" href="{{next_url}}">{{next_desc}} &raquo;</a>
+{% endblock content %}
+
+{% block body_extra %}
+<script>
+function set_categories() {
+    var categories = ( $("form#category_selector :checked").map(function() { return this.value }) );
+    var cat_string = categories.get().join(',');
+    $("form#category_selector #categories").val(cat_string);
+    $("form#category_selector").submit()
+}
+</script>
+{% endblock body_extra %}

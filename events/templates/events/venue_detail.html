@@ -1,0 +1,18 @@
+{% extends "events/base.html" %}
+{% block title %}{{venue.name}}{% endblock %}
+
+{% block content %}
+
+<h1>{{venue.name}}</h1>
+{% if venue.website != "" %}
+<a href="{{venue.website}}" target="blank">Website</a>
+{% endif %}
+{{venue.description}}
+
+<h2>Upcoming Events</h2>
+{% include 'events/event_list_display.html' with event_list=upcoming_events only %}
+
+<h2>Recent Events</h2>
+{% include 'events/event_list_display.html' with event_list=recent_events only %}
+
+{% endblock content %}
