@@ -12,4 +12,6 @@ urlpatterns = patterns('',
     url(r'^venue/(?P<pk>\d+)', views.VenueDetailView.as_view(), name='venue'),
     url(r'^venues/', views.VenueListView.as_view()),
     url(r'^event/(?P<pk>\d+)', views.EventDetailView.as_view(), name='event'),
+
+    url(r'^batch-add/$', views.BatchAddView.as_view()),
     )

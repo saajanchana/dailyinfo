@@ -17,13 +17,18 @@
 <a href="/dailyinfo/week/">This Week</a>
 <a href="/dailyinfo/day/">Today</a>
 <a href="/dailyinfo/venues/">Venues</a>
+<a href="/dailyinfo/batch-add/">(Add events)</a>
+<br class="separator"/>
 <a href="/dailyinfo/all/">(All Events)</a>
 <a href="/admin/">(Admin)</a>
+<br class="separator"/>
 {% block sidebar_extra %}{% endblock %}
 </div>
 
 <div id="content">
-{% block content %}{% endblock %}
+{% block content %}
+{{ content }}
+{% endblock %}
 </div>
 
 <div id="footer">

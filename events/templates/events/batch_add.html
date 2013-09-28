@@ -1,0 +1,15 @@
+{% extends "events/base.html" %}
+{% block title %}Batch add events{% endblock %}
+
+{% block content %}
+
+<h1>Batch add events</h1>
+<div class="batch_add">
+ <form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input type="submit"/>
+ </form>
+</div>
+
+{% endblock content %}
