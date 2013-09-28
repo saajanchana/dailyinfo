@@ -63,8 +63,8 @@ class PeriodView(generic.TemplateView):
         # See which categories we actually have in the date range
         available_categories = {}
         for ev in context['event_list']:
-            for cat in ev.category.all():
-                available_categories[cat.id] = True
+            available_categories[ev.category.id] = True
+            
         for cat in categories:
             if cat.id in available_categories:
                 cat.available = True

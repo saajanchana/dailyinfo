@@ -5,7 +5,7 @@
     {% if show_venue %}
     at <a href="{%url 'venue' event.venue.id %}">{{ event.venue.name }}</a>
     {% endif %}</div>
- <div class="event_categories">{{ event.category.all|join:"/" }}</div>
+ <div class="event_categories">{{ event.category }}</div>
  <div class="event_occurrences">{{ event.occurrences_in_range|join:"; " }}</div>
  <div class="event_description">{{ event.description }}</div>
 </div>

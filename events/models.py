@@ -34,7 +34,7 @@ class Event(models.Model):
     description = models.TextField('Description')
 
     venue = models.ForeignKey(Venue)
-    category = models.ManyToManyField(Category)
+    category = models.ForeignKey(Category)
 
     occurrence_range = (None, None)
 
