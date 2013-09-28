@@ -27,10 +27,16 @@ in the `DATABASES` section. This must be an absolute path, using forward slashes
 
 `manage.py syncdb`
 
-and follow the prompts. This will create an empty database.
+and follow the prompts. This will create an empty database. To populate the Venue and Category tables with some useful data, run
+
+`manage.py loaddata db.json`
 
 Once you have a database you can start the development server. Run
 
 `manage.py runserver`
 
-Then navigate to http://localhost:8000/ - you should see the front page. It will look pretty bare as there is nothing in the database - you can populate it by going to http://localhost:8000/admin/ or by running screenscrapers once they exist.
+Then navigate to <http://localhost:8000/> - you should see the front page. It will look pretty bare as there no events in the database yet - you can populate it by going to <http://localhost:8000/admin/> or by running screenscrapers once they exist.
+
+Code structure
+--------------
+
