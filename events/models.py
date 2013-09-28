@@ -21,7 +21,6 @@ class Venue(models.Model):
 class Category(models.Model):
     name = models.CharField('Category name', max_length=25)
     description = models.TextField('Description', blank=True)
-    colour = models.CharField('Colour', max_length=6)
 
     def __unicode__(self):
         return self.name
@@ -35,6 +34,10 @@ class Event(models.Model):
 
     venue = models.ForeignKey(Venue)
     category = models.ForeignKey(Category)
+
+    website = models.URLField('Website', blank=True)
+    ticket_website = models.URLField('Ticket website', blank=True)
+    ticket_details = models.CharField('Ticket details', max_length=100, blank=True)
 
     occurrence_range = (None, None)
 
