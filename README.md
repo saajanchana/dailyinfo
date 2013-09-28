@@ -17,7 +17,13 @@ Prerequisites
 Setup
 -----
 
-The default application configuration (dailyinfo/settings.py) uses the sqlite database backend included with Python so no database engine is required. The sqlite database is not checked in so you will need to regenerate it. In the top level directory, run
+The default application configuration (dailyinfo/settings.py) uses the sqlite database backend included with Python so no database engine is required. The sqlite database is not checked in so you will need to regenerate it.
+
+First, set the correct path to where you want the database to reside. In `dailyinfo/settings.py`, edit the line
+
+`'NAME': 'C:/Users/Saajan/Documents/GitHub/dailyinfo/sqlite3.db',`
+
+in the `DATABASES` section. This must be an absolute path, using forward slashes as a path separator even on Windows. Now in the top level directory, run
 
 `manage.py syncdb`
 
