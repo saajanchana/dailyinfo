@@ -1,3 +1,4 @@
+# coding=utf8
 from scraper import ScraperBase
 from datetime import datetime, timedelta
 
@@ -12,7 +13,7 @@ class TestDataScraper(ScraperBase):
                                                                                       self.occurrence(datetime.now() - timedelta(days=3))] )
 
         self.add_event(name='Event 3', description='Details of event 3', website='http://website/', ticket_website='http://ticket-website/', 
-                       ticket_details='£4-6 advance, £8-10 on the door', occurrences=[self.occurrence(datetime.now() + timedelta(days=4))])
+                       ticket_details=u'£4-6 advance, £8-10 on the door', occurrences=[self.occurrence(datetime.now() + timedelta(days=4))])
 
 def get_scraper(*args): # factory method
     return TestDataScraper()

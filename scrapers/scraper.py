@@ -13,7 +13,7 @@ class ScraperBase(object):
     def __init__(self):
         pass
 
-    def add_event(self, name, description, occurrences, venue=None, category=None, website=None, tickets_website=None, ticket_details=None):
+    def add_event(self, name, description, occurrences, venue=None, category=None, website=None, ticket_website=None, ticket_details=None):
         """
         Constructs an event record and adds it to the scraped_events array
 
@@ -44,7 +44,7 @@ class ScraperBase(object):
             new_event['category'] = category
 
         if website is not None: new_event['website'] = website
-        if tickets_website is not None: new_event['ticket_website'] = ticket_website
+        if ticket_website is not None: new_event['ticket_website'] = ticket_website
         if ticket_details is not None: new_event['ticket_details'] = ticket_details
 
         self.scraped_events += [new_event]
@@ -108,7 +108,9 @@ def main():
     scraper = mod.get_scraper(*sys.argv[2:])
 
     scraper.scrape()
-    print scraper.to_json()
+    json = scraper.to_json()
+    with open(sys.argv[1] + ".json", "w") as f:
+        f.write(json)
 
 if __name__ == '__main__':
     main()
