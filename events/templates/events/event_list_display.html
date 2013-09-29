@@ -6,6 +6,13 @@
     at <a href="{%url 'venue' event.venue.id %}">{{ event.venue.name }}</a>
     {% endif %}</div>
  <div class="event_categories">{{ event.category }}</div>
+ {% if event.ticket_details or event.ticket_website %}
+ <div class="ticket_details">Tickets: {{ event.ticket_details }}
+   {% if event.ticket_website %}
+    <a href="{{event.ticket_website}}">(Book)</a>
+   {% endif %}
+ </div>
+ {% endif %}
  <div class="event_occurrences">{{ event.occurrences_in_range|join:"; " }}</div>
  <div class="event_description">{{ event.description }}</div>
 </div>
