@@ -1,7 +1,6 @@
 from scraper import ScraperBase
 from datetime import datetime
 from bs4 import BeautifulSoup
-from urllib2 import urlopen
 import re
 
 class HotNumbersScraper(ScraperBase):
@@ -9,7 +8,7 @@ class HotNumbersScraper(ScraperBase):
         self.venue = 'Hot Numbers'
         self.category = 'Gigs'
 
-        raw = urlopen("http://hotnumberscoffee.co.uk/live-music/").read()
+        raw = self.fetch("http://hotnumberscoffee.co.uk/live-music/")
         soup = BeautifulSoup(raw)
 
         for ev_node in soup("article", class_="eventlist-event"):

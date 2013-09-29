@@ -1,26 +1,14 @@
 from scraper import ScraperBase
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
-from urllib2 import urlopen
 import re
-
-def fetch(url, description=None):
-    if description is None:
-        print "Retrieving %s..." % url,
-    else:
-        print "Retrieving %s (%s)..." % (url,description),
-
-    data = urlopen(url).read()
-    print "got %d bytes" % len(data)
-
-    return data
 
 class PortlandArmsScraper(ScraperBase):
     def scrape(self):
         self.venue = 'Portland Arms'
         self.category = 'Gigs'
 
-        raw = fetch("http://www.theportlandarms.co.uk/mbbs2//calendar/calendar-view.asp?calendarid=3")
+        raw = self.fetch("http://www.theportlandarms.co.uk/mbbs2//calendar/calendar-view.asp?calendarid=3")
         calendar_soup = BeautifulSoup(raw)
 
         def is_event_link(tag):
@@ -42,7 +30,7 @@ class PortlandArmsScraper(ScraperBase):
         # Crawl all linked event pages
         for i, event_id in enumerate(event_ids):
             url = "http://www.theportlandarms.co.uk/mbbs2//calendar/event-view.asp?eventid=%s" % event_id
-            raw = fetch(url, "event %d/%d" % (i, len(event_ids)))
+            raw = self.fetch(url, "event %d/%d" % (i, len(event_ids)))
             ev_soup = BeautifulSoup(raw)
             table_node = ev_soup.find("td", class_="maintable").find("table", class_="bbstable")
 
