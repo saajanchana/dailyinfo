@@ -5,8 +5,9 @@ from django.http import HttpResponse
 from django.views import generic
 from django import forms
 from django.utils import safestring
-import django.core.urlresolvers as urlresolvers
 from django.shortcuts import render
+from django.db import transaction
+import django.core.urlresolvers as urlresolvers
 
 from models import *
 from misc import date2str, time2str
@@ -157,9 +158,8 @@ class BatchAddForm(forms.Form):
     event_data = forms.CharField(widget=forms.Textarea)
 
     def perform_insert(self):
-        scraped_events = json.loads(self.event_data)
-        new_events = []
-        new_occurrences = []
+        scraped_events = json.loads(self.cleaned_data['event_data'])
+        num_events = 0
 
         for ev_spec in scraped_events:
             # FIXME: most of this should be done in Event.from_json()/Occurrence.from_json()
@@ -180,10 +180,10 @@ class BatchAddForm(forms.Form):
                 except:
                     return "<h1>error</h1><p>Could not find venue '%s' in database" % ev_spec['venue']
             else:
-                if default_venue is None:
+                if self.cleaned_data['default_venue'] is None:
                     return "<h1>error</h1><p>Error processing event '%s': no venue specified and no default venue set.</p>" % ev.name
                 else:
-                    ev.venue = self.default_venue
+                    ev.venue = self.cleaned_data['default_venue']
 
             if 'category' in ev_spec:
                 try:
@@ -191,32 +191,29 @@ class BatchAddForm(forms.Form):
                 except:
                     return "<h1>error</h1><p>Could not find category '%s' in database" % ev_spec['category']
             else:
-                if default_category is None:
+                if self.cleaned_data['default_category'] is None:
                     return "<h1>error</h1><p>Error processing event '%s': no category specified and no default category set.</p>" % ev.name
                 else:
-                    ev.category = self.default_category
+                    ev.category = self.cleaned_data['default_category']
+
+            ev.save()
 
             # Process occurrences
-            for occ_spec in ev_spec.occurrences:
+            for occ_spec in ev_spec['occurrences']:
                 occ = Occurrence()
-                occ.start_date = datetime.strptime(occ_spec['start_date'], "%Y-%m-%d")
-                if 'start_time' in occ_spec: occ.start_time = datetime.strptime(occ_spec['start_time'], "%H:%M")
-                if 'end_date' in occ_spec: occ.end_date = datetime.strptime(occ_spec['end_date'], "%Y-%m-%d")
-                if 'end_time' in occ_spec: occ.end_time = datetime.strptime(occ_spec['end_time'], "%H:%M")
-                new_occurrences += [occ]
+                occ.start_date = datetime.strptime(occ_spec['start_date'], "%Y-%m-%d").date()
+                if 'start_time' in occ_spec: occ.start_time = datetime.strptime(occ_spec['start_time'], "%H:%M").time()
+                if 'end_date' in occ_spec: occ.end_date = datetime.strptime(occ_spec['end_date'], "%Y-%m-%d").date()
+                if 'end_time' in occ_spec: occ.end_time = datetime.strptime(occ_spec['end_time'], "%H:%M").time()
+                ev.occurrence_set.add(occ)
 
-            new_events += [ev]
+            num_events += 1
 
-        # If we get here the dataset looks good. Commit everything to the database.
-        # FIXME: should we do this actually as a transaction?
-        for ev in new_events: ev.save()
-        for occ in new_occurrences: occ.save()
-
-        return "<h1>Success!</h1><p>Added %d events.</p>" % (len(new_events))
+        return "<h1>Success!</h1><p>Added %d events.</p>" % (num_events)
 
 class BatchAddView(generic.FormView):
     form_class = BatchAddForm
-    template_name = 'events/batch_add.html'
+    template_name = 'events/batch_add.html' 
     
     def form_valid(self, form):
         content = safestring.mark_safe(form.perform_insert())
