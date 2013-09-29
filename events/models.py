@@ -55,6 +55,46 @@ class Event(models.Model):
             queryset = queryset.filter(start_date__lte=self.occurrence_range[1])
         return queryset
 
+    @classmethod
+    def add_from_json(cls, ev_spec):
+        """
+        Creates and saves an event from a dictionary. Returns the event or raises an
+        exception if there were any errors; you probably want to run this inside a 
+        transaction!
+        """
+        # FIXME: assumes the uploaded JSON was a valid event description...
+        ev = cls(name=ev_spec['name'], description=ev_spec['description'])
+
+        # optional fields
+        if 'website' in ev_spec: ev.website = ev_spec['website']
+        if 'ticket_details' in ev_spec: ev.ticket_details = ev_spec['ticket_details']
+        if 'ticket_website' in ev_spec: ev.ticket_website = ev_spec['ticket_website']
+
+        # Set venue and category.
+        if 'venue' in ev_spec:
+            try:
+                ev.venue = Venue.objects.get(name=ev_spec['venue'])
+            except:
+                raise Exception("Failed to add event '%s': could not find venue '%s'" % (ev_spec['name'], ev_spec['venue']))
+
+        if 'category' in ev_spec:
+            try:
+                ev.category = Category.objects.get(name=ev_spec['category'])
+            except:
+                return Exception("Failed to add event '%s': could not find category '%s'" % (ev_spec['name'], ev_spec['category']))
+
+        ev.save()
+
+        # Process occurrences
+        for occ_spec in ev_spec['occurrences']:
+            occ = Occurrence()
+            occ.start_date = datetime.strptime(occ_spec['start_date'], "%Y-%m-%d").date()
+            if 'start_time' in occ_spec: occ.start_time = datetime.strptime(occ_spec['start_time'], "%H:%M").time()
+            if 'end_date' in occ_spec: occ.end_date = datetime.strptime(occ_spec['end_date'], "%Y-%m-%d").date()
+            if 'end_time' in occ_spec: occ.end_time = datetime.strptime(occ_spec['end_time'], "%H:%M").time()
+            ev.occurrence_set.add(occ)
+
+
     def __unicode__(self):
         return self.name
 

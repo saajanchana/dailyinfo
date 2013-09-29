@@ -161,61 +161,31 @@ class BatchAddForm(forms.Form):
         scraped_events = json.loads(self.cleaned_data['event_data'])
         num_events = 0
 
-        for ev_spec in scraped_events:
-            # FIXME: most of this should be done in Event.from_json()/Occurrence.from_json()
-            # FIXME: assumes the uploaded JSON was a valid event description...
-            ev = Event(name=ev_spec['name'], description=ev_spec['description'])
+        with transaction.commit_on_success():
+            for ev_spec in scraped_events:
+                Event.add_from_json(ev_spec)
+                num_events += 1
 
-            # optional fields
-            if 'website' in ev_spec: ev.website = ev_spec['website']
-            if 'ticket_details' in ev_spec: ev.ticket_details = ev_spec['ticket_details']
-            if 'ticket_website' in ev_spec: ev.ticket_website = ev_spec['ticket_website']
-
-            # Set venue and category. If they were specified (as strings) in the JSON upload
-            # find the record in the database. If we're using the default optionally specified
-            # by the user we already have the ORM object since we use a ModelChoiceField.
-            if 'venue' in ev_spec:
-                try:
-                    ev.venue = Venue.objects.get(name=ev_spec['venue'])
-                except:
-                    return "<h1>error</h1><p>Could not find venue '%s' in database" % ev_spec['venue']
-            else:
-                if self.cleaned_data['default_venue'] is None:
-                    return "<h1>error</h1><p>Error processing event '%s': no venue specified and no default venue set.</p>" % ev.name
-                else:
-                    ev.venue = self.cleaned_data['default_venue']
-
-            if 'category' in ev_spec:
-                try:
-                    ev.category = Category.objects.get(name=ev_spec['category'])
-                except:
-                    return "<h1>error</h1><p>Could not find category '%s' in database" % ev_spec['category']
-            else:
-                if self.cleaned_data['default_category'] is None:
-                    return "<h1>error</h1><p>Error processing event '%s': no category specified and no default category set.</p>" % ev.name
-                else:
-                    ev.category = self.cleaned_data['default_category']
-
-            ev.save()
-
-            # Process occurrences
-            for occ_spec in ev_spec['occurrences']:
-                occ = Occurrence()
-                occ.start_date = datetime.strptime(occ_spec['start_date'], "%Y-%m-%d").date()
-                if 'start_time' in occ_spec: occ.start_time = datetime.strptime(occ_spec['start_time'], "%H:%M").time()
-                if 'end_date' in occ_spec: occ.end_date = datetime.strptime(occ_spec['end_date'], "%Y-%m-%d").date()
-                if 'end_time' in occ_spec: occ.end_time = datetime.strptime(occ_spec['end_time'], "%H:%M").time()
-                ev.occurrence_set.add(occ)
-
-            num_events += 1
-
-        return "<h1>Success!</h1><p>Added %d events.</p>" % (num_events)
+        return num_events
 
 class BatchAddView(generic.FormView):
     form_class = BatchAddForm
     template_name = 'events/batch_add.html' 
     
     def form_valid(self, form):
-        content = safestring.mark_safe(form.perform_insert())
-        return render(self.request, 'events/base.html', {'content' : content})
+        try:
+            num_events = form.perform_insert()
+            content = safestring.mark_safe("""\
+<h1>Success</h1>
+Added %d events
+""" % (num_events))
+        
+        except Exception as e:
+            content = safestring.mark_safe("""\
+<h1>Failed to add events</h1>
+The error was:
+<div style="font-family: tt">%s</div>
+Please fix these errors and try again.""" % e.message)
 
+        finally:
+            return render(self.request, 'events/base.html', {'content' : content})
