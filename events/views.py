@@ -143,18 +143,6 @@ class VenueDetailView(generic.DetailView):
 # Particularly not with validation performed by uncaught exceptions from the model layer
 # But it'll do for now
 class BatchAddForm(forms.Form):
-    default_venue = forms.ModelChoiceField(
-        queryset = Venue.objects,
-        required=False, 
-        help_text='Used if no venue specified for an event. If all events have venues specified this field is not required',
-    )
-
-    default_category = forms.ModelChoiceField(
-        queryset = Category.objects,
-        required=False,
-        help_text='Used if no category specified for an event. If all events have categories specified this field is not required',
-    )
-    
     event_data = forms.CharField(widget=forms.Textarea)
 
     def perform_insert(self):
