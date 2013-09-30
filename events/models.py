@@ -31,6 +31,7 @@ class Category(models.Model):
 class Event(models.Model):
     name = models.CharField('Name', max_length=100)
     description = models.TextField('Description')
+    origin_key = models.CharField('Origin key', max_length=40, blank=True)
 
     venue = models.ForeignKey(Venue)
     category = models.ForeignKey(Category)

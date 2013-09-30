@@ -18,6 +18,7 @@ class HotNumbersScraper(ScraperBase):
             # Get event name and strip time info from the end - we extract it from metadata below
             ev_spec['name'] = re.sub(r'\s*\d\d:\d\d - \d\d:\d\d', '', title_node.string)
             ev_spec['website'] = 'http://hotnumberscoffee.co.uk' + title_node['href']
+            ev_spec['origin_key'] = title_node['href']
 
             # concatenate all <p>s inside all div.html_block to form description
             ev_spec['description'] = ""

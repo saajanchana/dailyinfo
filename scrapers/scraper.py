@@ -4,6 +4,7 @@ import sys
 import os
 import imp
 import re
+import hashlib
 from datetime import datetime, date, time
 from argparse import ArgumentParser
 from urllib2 import urlopen
@@ -19,14 +20,13 @@ class ScraperBase(object):
     def __init__(self):
         pass
 
-    def add_event(self, name, description, occurrences, venue=None, category=None, website=None, ticket_website=None, ticket_details=None):
+    def add_event(self, name, description, occurrences, origin_key=None, venue=None, category=None, website=None, ticket_website=None, ticket_details=None):
         """
         Constructs an event record and adds it to the scraped_events array
 
         Name, description and occurrences are required. Occurrences should be a list of
         dictionaries created with occurrence(). If venue or category is not specified
-        and a default (self.venue/self.category) is specified it is used; otherwise it is
-        left blank and must be specified when the dataset is imported to the database
+        the default (self.venue/self.category) is used.
         """
         assert name is not None
         assert description is not None
@@ -43,7 +43,7 @@ class ScraperBase(object):
         else:
             new_event['venue'] = venue
 
-        if venue is None:
+        if category is None:
             if self.category is not None:
                 new_event['category'] = self.category
         else:
@@ -52,6 +52,14 @@ class ScraperBase(object):
         if website is not None: new_event['website'] = website
         if ticket_website is not None: new_event['ticket_website'] = ticket_website
         if ticket_details is not None: new_event['ticket_details'] = ticket_details
+
+        if origin_key is not None:
+            origin_key = self.name + '|' + origin_key
+            if len(origin_key) > 40:
+                sha1 = hashlib.sha1()
+                sha1.update(origin_key)
+                origin_key = sha1.hexdigest()
+            new_event['origin_key'] = origin_key
 
         self.scraped_events += [new_event]
 

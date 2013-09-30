@@ -36,6 +36,7 @@ class PortlandArmsScraper(ScraperBase):
 
             ev_spec = { 'name' : table_node.find("td", class_="messagecellheader").get_text(),
                         'website' : url,
+                        'origin_key' : event_id,
                       }
 
             # Extract event table fields into a dictionary
