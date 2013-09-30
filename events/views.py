@@ -147,14 +147,21 @@ class BatchAddForm(forms.Form):
 
     def perform_insert(self):
         scraped_events = json.loads(self.cleaned_data['event_data'])
-        num_events = 0
+        added = 0
+        updated = 0
+        duplicates = 0
 
         with transaction.commit_on_success():
             for ev_spec in scraped_events:
-                Event.add_from_json(ev_spec)
-                num_events += 1
+                result = Event.add_from_json(ev_spec)
+                if result == 'added':
+                    added += 1
+                elif result == 'updated':
+                    updated += 1
+                elif result == 'duplicate':
+                    duplicates += 1
 
-        return num_events
+        return (added,updated,duplicates)
 
 class BatchAddView(generic.FormView):
     form_class = BatchAddForm
@@ -162,11 +169,11 @@ class BatchAddView(generic.FormView):
     
     def form_valid(self, form):
         try:
-            num_events = form.perform_insert()
+            added,updated,duplicates = form.perform_insert()
             content = safestring.mark_safe("""\
 <h1>Success</h1>
-Added %d events
-""" % (num_events))
+%d new, %d updated, %d duplicates
+""" % (added,updated,duplicates))
         
         except Exception as e:
             content = safestring.mark_safe("""\

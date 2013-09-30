@@ -59,14 +59,23 @@ class Event(models.Model):
     @classmethod
     def add_from_json(cls, ev_spec):
         """
-        Creates and saves an event from a dictionary. Returns the event or raises an
-        exception if there were any errors; you probably want to run this inside a 
-        transaction!
+        Creates and saves an event from a dictionary. Raises an exception if there were any
+        errors; you probably want to run this inside a transaction!
+
+        Returns 'added', 'duplicate' or 'updated'.
         """
+        # If an origin key was specified, see if the record already exists in the DB
+        if 'origin_key' in ev_spec:
+            q = Event.objects.filter(origin_key=ev_spec['origin_key'])
+            if q.count() == 1:
+                # TODO: check for updates here
+                return 'duplicate'
+
         # FIXME: assumes the uploaded JSON was a valid event description...
         ev = cls(name=ev_spec['name'], description=ev_spec['description'])
 
         # optional fields
+        if 'origin_key' in ev_spec: ev.origin_key = ev_spec['origin_key']
         if 'website' in ev_spec: ev.website = ev_spec['website']
         if 'ticket_details' in ev_spec: ev.ticket_details = ev_spec['ticket_details']
         if 'ticket_website' in ev_spec: ev.ticket_website = ev_spec['ticket_website']
@@ -95,6 +104,7 @@ class Event(models.Model):
             if 'end_time' in occ_spec: occ.end_time = datetime.strptime(occ_spec['end_time'], "%H:%M").time()
             ev.occurrence_set.add(occ)
 
+        return 'added'
 
     def __unicode__(self):
         return self.name
