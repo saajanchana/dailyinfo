@@ -67,17 +67,20 @@ class Event(models.Model):
         return len(words)
 
     def get_tag_contents(self, tag, max_words):
-        if self.word_count(tag.get_text()) <= max_words:
-            return (tag, self.word_count(tag.get_text))
+        if isinstance(tag, NavigableString):
+            if self.word_count(tag) <= max_words:
+                return (tag, self.word_count(tag))
+            else:
+                words = re.split(r'[\s]*', tag)
+                return (" ".join(words[:max_words]), max_words)
 
-        elif isinstance(tag, NavigableString):
-            words = re.split(r'[\s]*', tag.get_text())
-            return " ".join(words[:max_words])
+        elif self.word_count(tag.get_text()) <= max_words:
+            return (tag, self.word_count(tag.get_text()))
 
         else:
             new_tag = BeautifulSoup().new_tag(tag.name, **tag.attrs)
             for child in tag.children:
-                (st, nwords) = self.get_tag_contents(child)
+                (st, nwords) = self.get_tag_contents(child, max_words)
                 new_tag.append(st)
                 max_words -= nwords
                 if max_words == 0:
@@ -87,13 +90,13 @@ class Event(models.Model):
     def description_short(self):
         # get up to 20 words
         soup_full = BeautifulSoup(self.description)
-        soup_short = self.get_tag_contents(soup_full, 20)
+        (soup_short, nwords) = self.get_tag_contents(soup_full, 20)
 
         # get rid of paragraphs
         for p_tag in soup_short.findAll('p'):
             p_tag.unwrap()
 
-        return safestring.mark_safe(decode(soup_short, formatter='html'))
+        return safestring.mark_safe(soup_short.decode(formatter='html'))
 
     @staticmethod
     def sanitise_html(text, is_html):
