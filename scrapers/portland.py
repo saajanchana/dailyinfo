@@ -4,12 +4,9 @@ from bs4 import BeautifulSoup
 import re
 
 class PortlandArmsScraper(ScraperBase):
-    def scrape(self):
+    def scrape(self, from_date, to_date):
         self.venue = 'Portland Arms'
         self.category = 'Gigs'
-
-        raw = self.fetch("http://www.theportlandarms.co.uk/mbbs2//calendar/calendar-view.asp?calendarid=3")
-        calendar_soup = BeautifulSoup(raw)
 
         def is_event_link(tag):
             if tag.name == 'a':
@@ -19,18 +16,24 @@ class PortlandArmsScraper(ScraperBase):
 
         # Extract event IDs. Some may be duplicates (for repeating events)
         event_ids = set()
-        for ev_link_node in calendar_soup(is_event_link):
-            mo = re.match(r'event-view.asp\?eventid=(\d+)', ev_link_node['href'])
-            if mo is None:
-                print "Warning: failed to extract event ID for event '%s'" % ev_link_node.string
-                continue
 
-            event_ids.add(mo.group(1))
+        for month, year in self.get_month_list(from_date, to_date):
+            url = "http://www.theportlandarms.co.uk/mbbs2//calendar/calendar-view.asp?calendarid=3&month=%d&year=%d" % (month,year)
+            calendar_soup = BeautifulSoup(self.fetch(url))
+
+
+            for ev_link_node in calendar_soup(is_event_link):
+                mo = re.match(r'event-view.asp\?eventid=(\d+)', ev_link_node['href'])
+                if mo is None:
+                    print "Warning: failed to extract event ID for event '%s'" % ev_link_node.string
+                    continue
+
+                event_ids.add(mo.group(1))
 
         # Crawl all linked event pages
         for i, event_id in enumerate(event_ids):
             url = "http://www.theportlandarms.co.uk/mbbs2//calendar/event-view.asp?eventid=%s" % event_id
-            raw = self.fetch(url, "event %d/%d" % (i, len(event_ids)))
+            raw = self.fetch(url, "event %d/%d" % (i+1, len(event_ids)))
             ev_soup = BeautifulSoup(raw)
             table_node = ev_soup.find("td", class_="maintable").find("table", class_="bbstable")
 

@@ -94,18 +94,21 @@ class ScraperBase(object):
 
         return new_occurrence
 
-    def scrape(self, **kwargs):
+    def scrape(self, from_date, to_date):
         """
         Perform screenscraping (must be overridden by implementation class)
+
+        from_date/to_date are optional and are time range hints. It's OK to return events from
+        outside this range if available and does not require any more requests.
 
         The override method should add any events it has discovered into self.scraped_events.
         The easiest way of doing this is by calling add_event().
         """
         raise NotImplementedError("Derived scraper class must implement scrape()!")
 
-    def get_test_data(self, **kwargs):
+    def get_test_data(self, from_date=None, to_date=None):
         self.save_local_data = True
-        self.scrape(**kwargs)
+        self.scrape(from_date, to_date)
 
     def make_local_filename(self, url):
         # get rid of problematic characters; deal with urlencoded special characters
@@ -143,6 +146,26 @@ class ScraperBase(object):
 
         return data
 
+    def get_month_list(self, from_date, to_date):
+        if from_date is None:
+            from_date = datetime.today()
+        if to_date is None:
+            to_date = datetime.today()
+
+        month = from_date.month
+        year = from_date.year
+        months = []
+
+        while month <= to_date.month and year <= to_date.year:
+            months += [ (month,year) ]
+            if month == 12:
+                month = 1
+                year += 1
+            else:
+                month += 1
+
+        return months
+
     def to_json(self):
         return json.dumps(self.scraped_events, separators=(',', ':'))
 
@@ -151,6 +174,8 @@ def main():
     parser.add_argument('scraper_name')
     parser.add_argument('--test', '-t', dest='use_local', action='store_true')
     parser.add_argument('--save-test', '-s', dest='save_local', action='store_true')
+    parser.add_argument('--from-date', '-F', dest='from_date')
+    parser.add_argument('--to-date', '-T', dest='to_date')
 
     args = parser.parse_args()
 
@@ -168,13 +193,24 @@ def main():
     scraper.name = args.scraper_name
     scraper.use_local_data = args.use_local
 
+    # Date range
+    if args.from_date is not None:
+        from_date = datetime.strptime(args.from_date, "%Y-%m-%d")
+    else:
+        from_date = None
+
+    if args.to_date is not None:
+        to_date = datetime.strptime(args.to_date, "%Y-%m-%d")
+    else:
+        to_date = None
+
     if not args.save_local:
-        scraper.scrape()
+        scraper.scrape(from_date, to_date)
         json = scraper.to_json()
         with open(args.scraper_name + ".json", "w") as f:
             f.write(json)
     else:
-        scraper.get_test_data()
+        scraper.get_test_data(from_date, to_date)
 
 if __name__ == '__main__':
     main()
