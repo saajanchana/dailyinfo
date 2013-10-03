@@ -20,7 +20,7 @@ class ScraperBase(object):
     def __init__(self):
         pass
 
-    def add_event(self, name, description, occurrences, origin_key=None, venue=None, category=None, website=None, ticket_website=None, ticket_details=None):
+    def add_event(self, name, description, occurrences, origin_key=None, venue=None, category=None, website=None, ticket_website=None, ticket_details=None, description_is_html=False):
         """
         Constructs an event record and adds it to the scraped_events array
 
@@ -34,6 +34,7 @@ class ScraperBase(object):
 
         new_event = { 'name' : name,
                       'description' : description, 
+                      'description_is_html' : description_is_html,
                       'occurrences' : occurrences,
                     }
 

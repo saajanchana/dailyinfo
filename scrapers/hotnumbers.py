@@ -25,6 +25,7 @@ class HotNumbersScraper(ScraperBase):
             for div in ev_node("div", class_="html-block"):
                 for p in div("p"):
                     ev_spec['description'] += str(p)  # FIXME - ought to sanitize this somewhere
+            ev_spec['description_is_html'] = True
 
             # timing details are in hidden <time> tags
             occ_spec = {}
