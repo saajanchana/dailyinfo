@@ -1,7 +1,9 @@
 from django.db import models
 from misc import date2str, time2str
 from datetime import datetime, date, time
+from bs4 import BeautifulSoup
 import queries
+import re
 
 class Venue(models.Model):
     name = models.CharField('Name', max_length=100)
@@ -56,6 +58,51 @@ class Event(models.Model):
             queryset = queryset.filter(start_date__lte=self.occurrence_range[1])
         return queryset
 
+    @staticmethod
+    def sanitise_html(text, is_html):
+        if not is_html:
+            # Plain text - generate HTML
+            soup = BeautifulSoup()
+            paras = text.split('\n')
+            for para in paras:
+                # Skip empty paragraphs
+                if re.search(r'\S', para) is None:
+                    continue
+                
+                tag = soup.new_tag("p")
+                
+                # Attempt to make links and add text to the tag
+                while True:
+                    mo = re.search(r'http://\S+', para)
+                    if mo is None: 
+                        # no links found - add remaining text to tag and finish
+                        tag.append(soup.new_string(para))
+                        break
+
+                    # Add text before link (if any) as string
+                    if mo.start() > 0:
+                        tag.append(soup.new_string(para[:mo.start()]))
+
+                    # Strip final punctuation off link target, if applicable
+                    if re.match(r'.*[.,;/()]$', mo.group(0)) is not None:
+                        link_href = para[ mo.start() : mo.end() - 1]
+                        para = para[ mo.end() - 1:]
+                    else:
+                        link_href = mo.group(0)
+                        para = para[ mo.end() :]
+
+                    link_tag = soup.new_tag("a", href=link_href)
+                    link_tag.append(link_href)
+                    tag.append(link_tag)
+
+                soup.append(tag)
+
+        else:
+            # HTML - store sanitized HTML in the database
+            soup = BeautifulSoup(text)
+
+        return soup.decode(formatter='html')
+
     @classmethod
     def add_from_json(cls, ev_spec):
         """
@@ -72,7 +119,7 @@ class Event(models.Model):
                 return 'duplicate'
 
         # FIXME: assumes the uploaded JSON was a valid event description...
-        ev = cls(name=ev_spec['name'], description=ev_spec['description'])
+        ev = cls(name=ev_spec['name'], description=cls.sanitise_html(ev_spec['description'], ev_spec['description_is_html']))
 
         # optional fields
         if 'origin_key' in ev_spec: ev.origin_key = ev_spec['origin_key']
