@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import re
 
 class HotNumbersScraper(ScraperBase):
-    def scrape(self):
+    def scrape(self, from_date, to_date):
         self.venue = 'Hot Numbers'
         self.category = 'Gigs'
 
