@@ -14,7 +14,7 @@
  </div>
  {% endif %}
  <div class="event_occurrences">{{ event.occurrences_in_range|join:"; " }}</div>
- <div class="event_description">{{ event.description }}</div>
+ <div class="event_description">{{ event.description_short }}</div>
 </div>
 {% empty %}
  <div class="events_empty">No events to display</div>

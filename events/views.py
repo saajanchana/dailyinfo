@@ -168,19 +168,10 @@ class BatchAddView(generic.FormView):
     template_name = 'events/batch_add.html' 
     
     def form_valid(self, form):
-        try:
-            added,updated,duplicates = form.perform_insert()
-            content = safestring.mark_safe("""\
+        added,updated,duplicates = form.perform_insert()
+        content = safestring.mark_safe("""\
 <h1>Success</h1>
 %d new, %d updated, %d duplicates
 """ % (added,updated,duplicates))
         
-        except Exception as e:
-            content = safestring.mark_safe("""\
-<h1>Failed to add events</h1>
-The error was:
-<div style="font-family: tt">%s</div>
-Please fix these errors and try again.""" % e.message)
-
-        finally:
-            return render(self.request, 'events/base.html', {'content' : content})
+        return render(self.request, 'events/base.html', {'content' : content})

@@ -21,7 +21,7 @@
  <div class="event_website"><a href="{{event.website}}">More details</a></div>
  {% endif %}
 
-  <div class="event_description">{{ event.description }}</div>
+  <div class="event_description">{{ event.description_full }}</div>
  </div>
  <div class="event_detail_occurrences">
   {% for o in event.occurrence_set.all %}

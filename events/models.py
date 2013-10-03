@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import safestring
 from misc import date2str, time2str
 from datetime import datetime, date, time
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 import queries
 import re
 
@@ -59,6 +59,42 @@ class Event(models.Model):
             queryset = queryset.filter(start_date__lte=self.occurrence_range[1])
         return queryset
 
+    def description_full(self):
+        return safestring.mark_safe(self.description)
+
+    def word_count(self, text):
+        words = re.split(r'[\s]*', text)
+        return len(words)
+
+    def get_tag_contents(self, tag, max_words):
+        if self.word_count(tag.get_text()) <= max_words:
+            return (tag, self.word_count(tag.get_text))
+
+        elif isinstance(tag, NavigableString):
+            words = re.split(r'[\s]*', tag.get_text())
+            return " ".join(words[:max_words])
+
+        else:
+            new_tag = BeautifulSoup().new_tag(tag.name, **tag.attrs)
+            for child in tag.children:
+                (st, nwords) = self.get_tag_contents(child)
+                new_tag.append(st)
+                max_words -= nwords
+                if max_words == 0:
+                    break
+            return (new_tag, max_words)
+
+    def description_short(self):
+        # get up to 20 words
+        soup_full = BeautifulSoup(self.description)
+        soup_short = self.get_tag_contents(soup_full, 20)
+
+        # get rid of paragraphs
+        for p_tag in soup_short.findAll('p'):
+            p_tag.unwrap()
+
+        return safestring.mark_safe(decode(soup_short, formatter='html'))
+
     @staticmethod
     def sanitise_html(text, is_html):
         if not is_html:
@@ -104,7 +140,7 @@ class Event(models.Model):
         else:
             # HTML - store sanitized HTML in the database
             blacklist = ['script', 'style']
-            whitelist = { 'a' : [href],
+            whitelist = { 'a' : ['href'],
                           'p' : None,
                           'div' : None,
                           'span' : None,
@@ -137,7 +173,7 @@ class Event(models.Model):
                     tag.unwrap()
                 else:
                     # remove disallowed attributes
-                    permitted_attrs = whiltelist[tag.name.lower()]
+                    permitted_attrs = whitelist[tag.name.lower()]
                     for attr in tag.attrs:
                         if permitted_attrs is None or attr not in permitted_attrs:
                             del tag.attrs[attr]
