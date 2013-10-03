@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import safestring
 from misc import date2str, time2str
 from datetime import datetime, date, time
 from bs4 import BeautifulSoup
@@ -92,14 +93,54 @@ class Event(models.Model):
                         para = para[ mo.end() :]
 
                     link_tag = soup.new_tag("a", href=link_href)
-                    link_tag.append(link_href)
+                    if len(link_href) <= 25:
+                        link_tag.append(link_href)
+                    else:
+                        link_tag.append(link_href[:22] + '...')
                     tag.append(link_tag)
 
                 soup.append(tag)
 
         else:
             # HTML - store sanitized HTML in the database
+            blacklist = ['script', 'style']
+            whitelist = { 'a' : [href],
+                          'p' : None,
+                          'div' : None,
+                          'span' : None,
+                          'br' : None,
+                          'table' : None,
+                          'tr' : None,
+                          'td' : None,
+                          'th' : None,
+                          'thead' : None,
+                          'tbody' : None,
+                          'ul' : None,
+                          'ol' : None,
+                          'li' : None,
+                          'b' : None,
+                          'strong' : None,
+                          'i' : None,
+                          'em' : None,
+                          'u' : None,
+                          'strike' : None,
+                        }
+
             soup = BeautifulSoup(text)
+
+            for tag in soup.findAll():
+                if tag.name.lower() in blacklist:
+                    # remove including all children
+                    tag.extract()
+                elif tag.name.lower() not in whitelist:
+                    # remove, retaining children
+                    tag.unwrap()
+                else:
+                    # remove disallowed attributes
+                    permitted_attrs = whiltelist[tag.name.lower()]
+                    for attr in tag.attrs:
+                        if permitted_attrs is None or attr not in permitted_attrs:
+                            del tag.attrs[attr]
 
         return soup.decode(formatter='html')
 
