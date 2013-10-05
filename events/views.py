@@ -56,7 +56,6 @@ class PeriodView(generic.TemplateView):
             # Return all categories
             wanted_categories = None
             for cat in categories:
-                print "Yes"
                 cat.active = True
         else:
             for cat in categories:
