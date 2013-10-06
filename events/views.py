@@ -47,6 +47,10 @@ class PeriodView(generic.TemplateView):
         else:
             context['event_list'] = queries.UpcomingEvents(start_date=start_date, end_date=end_date, categories=wanted_categories)
 
+        # Set occurrence range
+        for ev in context['event_list']:
+            ev.set_occurrence_range(start_date=start_date, end_date=end_date)
+
         context['next_url'] = urlresolvers.reverse(self.url_name, kwargs = {'start_date' : "{0:%Y-%m-%d}".format(start_date + timedelta(days=self.days))} )
         context['prev_url'] = urlresolvers.reverse(self.url_name, kwargs = {'start_date' : "{0:%Y-%m-%d}".format(start_date - timedelta(days=self.days))} )
 

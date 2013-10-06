@@ -1,19 +1,21 @@
 <div class="event_list">
 {% for event in event_list %}
 <div class="event">
- <div class="event_title"><a href="{% url 'event' event.id%}">{{ event.name }}</a></b> 
-    {% if show_venue %}
-    at <a href="{%url 'venue' event.venue.id %}">{{ event.venue.name }}</a>
-    {% endif %}</div>
- <div class="event_categories">{{ event.category }}</div>
- {% if event.ticket_details or event.ticket_website %}
- <div class="ticket_details">Tickets: {{ event.ticket_details }}
-   {% if event.ticket_website %}
-    <a href="{{event.ticket_website}}">(Book)</a>
-   {% endif %}
+ <div class="event_category">{{ event.category }}</div>
+ <div class="event_header">
+  <div class="event_title_block"><span class="event_title"><a href="{% url 'event' event.id%}">{{ event.name }}</a></span>
+     {% if show_venue %}
+     at <span class="venue_link"><a href="{%url 'venue' event.venue.id %}">{{ event.venue.name }}</a></span>
+     {% endif %}</div>
+  {% if event.ticket_details or event.ticket_website %}
+  <div class="ticket_details">Tickets: {{ event.ticket_details }}
+    {% if event.ticket_website %}
+     <a href="{{event.ticket_website}}">(Book)</a>
+    {% endif %}
+  </div>
+  {% endif %}
+  <div class="event_occurrences">{{ event.occurrences_in_range|join:"; " }}</div>
  </div>
- {% endif %}
- <div class="event_occurrences">{{ event.occurrences_in_range|join:"; " }}</div>
  <div class="event_description">{{ event.description_short }}</div>
 </div>
 {% empty %}
