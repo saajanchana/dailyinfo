@@ -92,13 +92,45 @@ body, html {
 }
 
 /* Event detail display */
+.event_detail_category {
+    background: #000;
+    color: #fff;
+    font-size: 10pt;
+    padding: 0px 5px;
+    margin: 10px 0px 0px 0px;
+}
+
+.event_detail_header {
+    border: solid 1px;
+    background: #ddd;
+    padding: 0px 5px;
+}
+
+.event_detail_header .event_name {
+    font-size: 18pt;
+    font-weight: bold;
+}
+
+.event_detail_header div {
+    margin: 5px 5px 5px 0px;
+    font-size: 10pt;
+}
+
 .event_detail_wrap {
+    clear: both;
     float: left;
 }
+
+.event_detail_description {
+    float: left;
+    width: 100%;
+}
+
 .event_detail_occurrences {
     border: solid 1px;
     padding: 5px;
     float: right;
+    width: 150px;
 }
 .event_occurrence {
     color: #000;

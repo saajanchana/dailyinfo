@@ -2,34 +2,34 @@
 {% block title %}{{event.name}} @ {{event.venue.name}}{% endblock %}
 
 {% block content %}
-
-<h1>{{event.name}}</h1>
-
- <div class="event_detail_wrap">
+<div class="event_detail_category">{{ event.category }}</div>
+<div class="event_detail_header">
+  <div class="event_name">{{ event.name }}</div>
   <div class="event_venue">at <a href="{% url 'venue' event.venue.id %}">{{ event.venue.name }}</a></div>
-  <div class="event_categories">{{ event.category }}</div>
   {% if event.ticket_details or event.ticket_website %}
-  <div class="ticket_details">
-   Tickets: {{ event.ticket_details }}
-   {% if event.ticket_website %}
-   <a href="{{event.ticket_website}}">(Book)</a>
-   {% endif %}
-  </div>
+   <div class="ticket_details">
+    Tickets: {{ event.ticket_details }}
+    {% if event.ticket_website %}
+    <a href="{{event.ticket_website}}">(Book)</a>
+    {% endif %}
+   </div>
   {% endif %}
+  {% if event.website %}
+   <div class="event_website"><a href="{{event.website}}">More details</a></div>
+  {% endif %}
+</div>
 
- {% if event.website %}
- <div class="event_website"><a href="{{event.website}}">More details</a></div>
- {% endif %}
-
-  <div class="event_description">{{ event.description_full }}</div>
- </div>
+<div class="event_detail_wrap">
+ <div class="event_detail_description">{{ event.description_full }}</div>
  <div class="event_detail_occurrences">
   {% for o in event.occurrence_set.all %}
-   {% if o.is_past %}<div class="event_occurrence_past">
-   {% else %}{% ifchanged o.is_past %}<div class="event_occurrence_next">
-   {% else %}<div class="event_occurrence">{% endifchanged %}{% endif %}
+   <div class=
+   {% if o.is_past %}"event_occurrence_past"
+   {% else %}{% ifchanged o.is_past %}"event_occurrence_next"
+   {% else %}"event_occurrence"{% endifchanged %}{% endif %}>
    {{ o.long_string }}
   </div>
   {% endfor %}
  </div>
+</div>
 {% endblock content %}
