@@ -64,78 +64,57 @@ class Event(models.Model):
         return safestring.mark_safe(self.description)
 
     def word_count(self, text):
+        if not (isinstance(text, str) or isinstance(text, NavigableString)):
+            text = text.get_text()
         words = re.split(r'[\s]+', text)
         return len(words)
 
     def keep_first_nwords(self, tag, max_words):
-        truncated = False
         if self.word_count(tag) > max_words:
-            if isinstance(tag, NavigableString):
-                word_list = re.split(r'[\s]+', tag)
-                tag.replace(tag.new_string(" ".join(word_list)))
+            words = 0
 
-            else:
-                words = 0
-                for child in tag.children:
-                    if words + self.word_count(child) <= max_words:
-                        words += self.word_count(child)
-                    elif words >= max_words:
-                        tag.decompose()
-                    else:
-                        keep_first_nwords(child, max_words - nwords)
+            to_remove = []
+            for child in tag.children:
+                # If we already have too many words, queue child for destruction
+                if words >= max_words:
+                    to_remove.append(child)
 
-            truncated = True
-        return truncated
+                # This child won't take us over our word limit, leave it alone
+                elif words + self.word_count(child) <= max_words:
+                    words += self.word_count(child)
 
-    def xxxx(self):
-        print 'get_tag_contents(%s, %d)' % (tag, max_words)
-        if isinstance(tag, NavigableString):
-            if self.word_count(tag) <= max_words:
-                print 'NavigableString: returned whole tag'
-                return (tag, self.word_count(tag))
-            else:
-                words = re.split(r'[\s]*', tag)
-                print 'NavigableString: returned first %d words out of %d' % (max_words, self.word_count(tag))
-                return (" ".join(words[:max_words]), max_words)
+                # We need to truncate this child
+                elif isinstance(child, NavigableString):
+                    word_list = re.split(r'[\s]+', child)
+                    s = BeautifulSoup().new_string(" ".join(word_list[0:(max_words-words)]) )
+                    #print 'Truncating string %d => %d words' % (len(word_list), max_words - words)
+                    child.replace_with(s)
+                    words = max_words
 
-        elif self.word_count(tag.get_text()) <= max_words:
-            print 'returned entire tag (%d words)' % self.word_count(tag.get_text())
-            return (tag, self.word_count(tag.get_text()))
+                else: # It's a tag
+                    #print 'Recursing into tag %s (max_words = %d)' % (str(child), max_words - words)
+                    self.keep_first_nwords(child, max_words - words)
+                    words = max_words
 
+            map(lambda x: x.extract(), to_remove)
+            return True    # tag was truncated
         else:
-            if tag.name != '[document]':
-                new_tag = BeautifulSoup().new_tag(tag.name, **tag.attrs)
-            else:
-                new_tag = BeautifulSoup()
-            nwords = 0
-            contents = tag.contents
-            for child in contents: print child
-
-            for child in contents:
-                print "Parsing child %s" % child
-                (st, tag_words) = self.get_tag_contents(child, max_words)
-                new_tag.append(st)
-                nwords += tag_words
-                if nwords == max_words:
-                    print 'Done'
-                    break
-
-            print 'returned %s' % new_tag
-            return (new_tag, nwords)
+            return False
 
     def description_short(self):
         # get up to 20 words
         soup = BeautifulSoup(self.description)
-        nwords = self.keep_first_nwords(soup, 50)
+        truncated = self.keep_first_nwords(soup, 50)
 
-        if nwords < self.word_count(soup.get_text()):
-            more_info_link = soup.new_tag('a', href=urlresolvers.reverse('event', kwargs = {'pk', str(self.id)}))
+        if truncated:
+            more_info_link = soup.new_tag('a', href=urlresolvers.reverse('event', kwargs = {'pk' : str(self.id)}))
             more_info_link['class'] = 'more_info_link'
-            more_info_link.append('[more info]')
+            more_info_link.append('[...]')
             soup.append(more_info_link)
 
         # get rid of paragraphs
         for p_tag in soup.findAll('p'):
+            p_tag.append(' ')  # ensure paragraph ends with a space before we flatten it
             p_tag.unwrap()
 
         return safestring.mark_safe(soup.decode(formatter='html'))
